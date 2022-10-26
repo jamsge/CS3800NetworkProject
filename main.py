@@ -20,7 +20,16 @@ while True:
         #Send one HTTP header line into socket 
         #Fill in start 
         connectionSocket.send('\nHTTP/1.1 200 OK\n\n'.encode())
-        connectionSocket.send("test123".encode())   
+
+        if len(path) == 1 and path[0] == '':
+            f = open("index.html")
+            outputdata = f.read()
+            for i in range(0, len(outputdata)):            
+                connectionSocket.send(outputdata[i].encode())   
+        elif path[0] == "test":
+            connectionSocket.send("test123".encode())   
+        else:
+            raise IOError
         connectionSocket.send("\r\n".encode()) 
          
         connectionSocket.close() 
@@ -33,6 +42,6 @@ while True:
     #     #Fill in start 
         connectionSocket.close()
     #     #Fill in end             
-    
+
 serverSocket.close() 
 sys.exit()#Terminate the program after sending the corresponding data
