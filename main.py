@@ -26,8 +26,21 @@ while True:
             outputdata = f.read()
             for i in range(0, len(outputdata)):            
                 connectionSocket.send(outputdata[i].encode())   
-        elif path[0] == "test":
-            connectionSocket.send("test123".encode())   
+        
+        # REST API routing
+
+        # /shop - GET
+        # Return all available items in JSOn form
+        elif path[0] == "shop":
+            connectionSocket.send("test123".encode())
+
+        # /purchase - POST
+        # Take and validate payment/shipping info.
+        # If valid info, then return receipt
+        # As a bonus, send receipt in an email
+        elif path[0] == "purchase":
+            connectionSocket.send("test123".encode())
+
         else:
             raise IOError
         connectionSocket.send("\r\n".encode()) 
