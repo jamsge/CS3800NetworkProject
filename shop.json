@@ -1,0 +1,14 @@
+{
+    "0bc284a6-558b-11ed-bdc3-0242ac120002":{
+        "item": "bike",
+        "price": 200.00
+    },
+    "0bc287da-558b-11ed-bdc3-0242ac120002":{
+        "item": "suitcase",
+        "price": 79.99
+    },
+    "0bc28960-558b-11ed-bdc3-0242ac120002":{
+        "item": "computer monitor",
+        "price": 150.01
+    }
+}
