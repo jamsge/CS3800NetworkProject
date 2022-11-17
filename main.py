@@ -1,11 +1,12 @@
 #import socket module 
 from socket import * 
 import sys # In order to terminate the program 
+import json
  
 serverSocket = socket(AF_INET, SOCK_STREAM) 
 # #Prepare a sever socket 
 # #Fill in start 
-serverSocket.bind(("",3000))
+serverSocket.bind(("",3001))
 serverSocket.listen(1)
 # #Fill in end 
 while True: 
@@ -13,39 +14,63 @@ while True:
     print('Ready to serve...') 
     connectionSocket, addr = serverSocket.accept() #Fill in        
     try: 
-        message = connectionSocket.recv(1024)
-        # print(message)
+        message = connectionSocket.recv(5000)
+        print(message)
+        if (message == b''):
+            continue
         path = message.split()[1][1:].decode("utf8").split("/")
+        protocol = message.split()[0].decode("utf8")
+        print(protocol)
         print(path)
         #Send one HTTP header line into socket 
         #Fill in start 
-        connectionSocket.send('\nHTTP/1.1 200 OK\n\n'.encode())
+        connectionSocket.send('\r\nHTTP/1.1 200 OK'.encode())
+        connectionSocket.send('\r\nAccess-Control-Allow-Origin: *'.encode())
+        connectionSocket.send('\r\nAccess-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept\r\n\r\n'.encode())
 
-        if len(path) == 1 and path[0] == '':
+        if path[0] == '':
             f = open("index.html")
+            outputdata = f.read()       
+            print(outputdata)
+            connectionSocket.send(outputdata.encode())   
+        
+        elif path[0] == 'manifest.json' or path[0] == "static":
+            f = open(message.split()[1][1:].decode("utf8"))
             outputdata = f.read()
-            for i in range(0, len(outputdata)):            
-                connectionSocket.send(outputdata[i].encode())   
+            connectionSocket.send(outputdata.encode())
         
         # REST API routing
 
         # /shop - GET
         # Return all available items in JSOn form
-        elif path[0] == "shop":
-            connectionSocket.send("test123".encode())
+        elif path[0] == "shop" and protocol == "GET":
+            f = open("shop.json")
+            outputdata = f.read()
+            print(outputdata)
+            connectionSocket.send(outputdata.encode())
+            f.close()
 
         # /purchase - POST
         # Take and validate payment/shipping info.
         # If valid info, then return receipt
         # As a bonus, send receipt in an email
-        elif path[0] == "purchase":
-            connectionSocket.send("test123".encode())
+        elif path[0] == "purchase" and protocol == "POST":
+            shop_f = open("shop.json")
+            dictionary = json.load(shop_f)
+            print(dictionary)
+            shop_f.close()
+            payload_length = int(message.decode("utf-8").split("Content-Length: ")[1].split("\r\n")[0])
+            print(payload_length)
+            payload = json.loads(message[-payload_length:].decode("utf-8"))
+            orders_f = open("orders.txt", "a")
+            orders_f.write(payload["email"] + "\t" + payload["fullName"] + "\n")
+            for id in payload["purchases"]:
+                orders_f.write("\t" + id + "\n")
+            orders_f.close()
 
         else:
             raise IOError
-        connectionSocket.send("\r\n".encode()) 
          
-        connectionSocket.close() 
     except IOError: 
     #     #Send response message for file not found 
     #     #Fill in start         
@@ -54,7 +79,9 @@ while True:
     #     #Close client socket 
     #     #Fill in start 
         connectionSocket.close()
-    #     #Fill in end             
+    #     #Fill in end
+    
+    connectionSocket.close() 
 
 serverSocket.close() 
 sys.exit()#Terminate the program after sending the corresponding data
